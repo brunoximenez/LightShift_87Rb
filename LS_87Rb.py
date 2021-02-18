@@ -19,34 +19,50 @@ w0 = 1.1e-6
 ls_d1 = np.array([])
 ls_d2 = np.array([])
 u0 = np.array([])
-
+u0_mK = np.array([])
 
 det_12, det_32 = ls.detuning(850e-9)
 
 
 for p in laser_power:
-    light_shift_d1, light_shift_d2, trap_depth = ls.light_shift_Ds(element, p, w0, det_12, det_32)
+    light_shift_d1, light_shift_d2, trap_depth, trap_depth_mkelvin = ls.light_shift_Ds(element, p, w0, det_12, det_32)
     ls_d1 = np.append(ls_d1, light_shift_d1)
     ls_d2 = np.append(ls_d2, light_shift_d2)
     u0 = np.append(u0, trap_depth)
+    u0_mK = np.append(u0_mK, trap_depth_mkelvin)
+
+
+
+
+plt.show()
 
 
 title = 'w0 = ' + str(w0)
-plt.subplot(211)
+plt.subplot(311)
 plt.title(title)
 plt.plot(u0, ls_d1, label='D1 transition')
 plt.plot(u0, ls_d2, label='D2 transition')
 plt.ylabel('Light shift (MHz)')
 plt.xlim((np.amin(u0), np.amax(u0)))
+plt.ylim((-40, -10))
 plt.legend()
 plt.grid()
-plt.subplot(212)
+plt.subplot(312)
 plt.plot(u0, laser_power*1e3)
 plt.ylabel('Laser power (mW)')
 plt.xlabel('Trap depth (MHz)')
 plt.xlim((np.amin(u0), np.amax(u0)))
-plt.ylim((np.amin(laser_power*1e3), np.amax(laser_power*1e3)))
+# plt.ylim((np.amin(laser_power*1e3), np.amax(laser_power*1e3)))
+plt.ylim((0, 6))
 plt.grid()
+plt.subplot(313)
+plt.plot(-u0_mK, laser_power * 1e3)
+plt.xlabel('Trap depth (mK)')
+plt.ylabel('Laser power (mW)')
+plt.ylim((0, 6))
+plt.xlim((0.2, 1.2))
+plt.grid()
+
 plt.show()
 sys.exit(0)
 

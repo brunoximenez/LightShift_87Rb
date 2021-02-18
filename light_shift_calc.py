@@ -68,7 +68,8 @@ def light_shift_Ds(atom, laser_power, w0, det_12, det_32):
 	lightshift_D1_MHz = lightshift_D1 / 1e6
 
 	trap_depth = (light_shift_P_12 + light_shift_P_32) / 1e6
-
+	# trap depth in mK
+	trap_depth_mkelvin = h * trap_depth * 1e9 / k
 
 
 	# Temperature correction:
@@ -77,6 +78,6 @@ def light_shift_Ds(atom, laser_power, w0, det_12, det_32):
 	lightshift_D2 += - (det_32 / np.abs(det_32)) * dE_temperature
 	lightshift_D1 += - (det_32 / np.abs(det_12)) * dE_temperature
 
-	return lightshift_D1_MHz, lightshift_D2_MHz, trap_depth
+	return lightshift_D1_MHz, lightshift_D2_MHz, trap_depth, trap_depth_mkelvin
 
 

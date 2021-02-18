@@ -1,0 +1,46 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from arc import *
+import calc_exact as ls
+import sys
+
+fontsize = 16
+
+atom = Rubidium87()
+
+q = int(0) # Photon Polarization
+P = 4e-3
+w0 = 1.1e-6
+
+
+'''
+
+Here I calculate the light shift with respect to the HFS
+on the mf levels of a particular f state. Will plot shift againt mf
+
+'''
+f = 2
+mf_5S12_matrix, ls_5S12_matrix = ls.get_ls_mfs_5S(atom, f, q, P, w0)
+f = 3
+mf_5P32_matrix, ls_5P32_matrix = ls.get_ls_mfs_5P3_2(atom, f, q, P, w0)
+f = 2
+mf_5P32_matrix, ls_5P32_matrix = ls.get_ls_mfs_5P3_2(atom, f, q, P, w0)
+
+# q = 1 # Photon Polarization
+# f = 2
+# mf_5S12_matrix, ls_5S12_matrix = ls.get_ls_mfs_5S(atom, f, q, P, w0)
+# f = 2
+# mf_5P32_matrix, ls_5P32_matrix = ls.get_ls_mfs_5P3_2(atom, f, q, P, w0)
+
+plt.grid(linewidth=.2)
+
+
+
+'''
+
+Below I calculate the effective shift on the relevant transitions
+
+Pushout: 5S1/2; F, mf = 2,2 ---> 5P3/2; F, mf = 3, 2, assuming q=0 (linear pol trpa)
+optical pumping: 5S1/2; F, mf = 2, vaious ---> 5P3/2; F, mf = 2, various + 1, assuming q=0 (linear pol trap)
+'''
+ls.get_plot_transitions_OP_pushout(atom, w0)
