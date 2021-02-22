@@ -348,8 +348,7 @@ def get_ls_transition5S_5P32(atom, f_ground, mf_ground, f_excited, mf_excited, q
 def get_plot_transitions_OP_pushout(atom, w0):
 	# Pushout transition
 	q = 0 # trap lasers
-	f_ground = 2
-	mf_ground = 2
+
 
 	p = np.linspace(0, 5, 5)
 	p *= 1e-3
@@ -361,6 +360,8 @@ def get_plot_transitions_OP_pushout(atom, w0):
 	# Pushout transition
 	for power in p:
 		# Pushout transition
+		f_ground = 2
+		mf_ground = 2
 		f_excited = 3
 		mf_excited = mf_ground + 1
 		shift = get_ls_transition5S_5P32(atom, f_ground, mf_ground, f_excited, mf_excited, q, power, w0)
@@ -368,7 +369,7 @@ def get_plot_transitions_OP_pushout(atom, w0):
 
 		# OP transition
 		f_excited = 2
-		mf_ground = -2
+		mf_ground = 0
 		mf_excited = mf_ground + 1
 		shift = get_ls_transition5S_5P32(atom, f_ground, mf_ground, f_excited, mf_excited, q, power, w0)
 		ls_shift_OP = np.append(ls_shift_OP, shift)
@@ -382,3 +383,29 @@ def get_plot_transitions_OP_pushout(atom, w0):
 	plt.legend(fontsize=fontsize)
 	plt.grid(linewidth=.2)
 	plt.show()
+
+
+def get_ls_OP_pushout(laser_power, q=0):
+	atom = Rubidium87()
+	w0 = 1.1e-6
+
+	# Quantum numbers
+	f_ground = 2
+	mf_ground = 2
+	# Pushout transition
+	f_excited = 3
+	mf_excited = mf_ground + 1
+	shift_pushout = get_ls_transition5S_5P32(atom, f_ground, mf_ground, f_excited, mf_excited, q, laser_power, w0)
+
+
+	# OP transition
+	f_excited = 2
+	mf_ground = 0
+	mf_excited = mf_ground + 1
+	shift_OP = get_ls_transition5S_5P32(atom, f_ground, mf_ground, f_excited, mf_excited, q, laser_power, w0)
+
+
+	return shift_OP, shift_pushout
+
+
+

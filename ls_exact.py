@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from arc import *
-import calc_exact as ls
+import ls_functions as ls
 import sys
 
 fontsize = 16
@@ -44,3 +44,7 @@ Pushout: 5S1/2; F, mf = 2,2 ---> 5P3/2; F, mf = 3, 2, assuming q=0 (linear pol t
 optical pumping: 5S1/2; F, mf = 2, vaious ---> 5P3/2; F, mf = 2, various + 1, assuming q=0 (linear pol trap)
 '''
 ls.get_plot_transitions_OP_pushout(atom, w0)
+
+ls_OP, ls_pushout = ls.get_ls_OP_pushout(4e-3)
+print(ls_pushout)
+print(ls_OP)
