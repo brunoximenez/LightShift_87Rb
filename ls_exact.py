@@ -9,9 +9,14 @@ fontsize = 16
 atom = Rubidium87()
 
 q = int(0) # Photon Polarization
-P = 4e-3
+laser_power = 5e-3
+P = laser_power
 w0 = 1.1e-6
+B = 6.5
+ls.plot_pushout_w_ls_zeeman(atom, B, laser_power, w0=1.1e-6)
+ls.plot_op_w_ls_zeeman(atom, B, laser_power, w0=1.1e-6)
 
+sys.exit(0)
 
 '''
 
@@ -48,3 +53,5 @@ ls.get_plot_transitions_OP_pushout(atom, w0)
 ls_OP, ls_pushout = ls.get_ls_OP_pushout(4e-3)
 print(ls_pushout)
 print(ls_OP)
+
+
