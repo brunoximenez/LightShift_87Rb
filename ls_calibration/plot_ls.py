@@ -16,6 +16,68 @@ plt.rcParams['text.usetex'] = True
 plt.rcParams['text.latex.preamble'] = [
     r'\usepackage{amsmath}']  # for \text command
 
+a0 = 5.29177210903e-11
+fontsize = 16
+atom = Rubidium87()
+
+def light_shift_calc(state_to_calculate_shift, cooupled_states, q, laser_power, w0, laser_wavelength):
+    light_shift = 0
+    laser_frequency = c / laser_wavelength
+
+    n = int(state_to_calculate_shift[[0]])
+    l = int(state_to_calculate_shift[[1]])
+    j = float(state_to_calculate_shift[[2]])
+    f = float(state_to_calculate_shift[[3]])
+    mf = float(state_to_calculate_shift[[4]])
+
+    # print('\nCalculating light shift on state: ', n, l, j, f, mf)
+
+    for n_prime, l_prime, j_prime, f_prime, mf_prime in cooupled_states:
+        n_prime = int(n_prime)
+        l_prime = int(l_prime)
+
+
+        # if mf_prime == mf + q and abs(f_prime - f) < 2:
+        if abs(f_prime - f) < 2:
+            transition_frequency = atom.getTransitionFrequency(
+                n, l, j, n_prime, l_prime, j_prime, s=0.5, s2=None)
+            
+            # print('\nCoupled state: ', n_prime, l_prime, j_prime, f_prime, mf_prime)
+            # print('Wavelength of the transition (nm): ', c * 1e9 / transition_frequency)
+            # print('Detuning (THz): ', (np.abs(transition_frequency) - laser_frequency) * 1e-12)
+            q=1
+            dip_elem = np.sqrt(.5) * atom.getDipoleMatrixElementHFS(
+                n, l, j, f, mf, n_prime, l_prime, j_prime, f_prime, mf_prime, 1) * a0 * e
+            dip_elem += np.sqrt(.5) * atom.getDipoleMatrixElementHFS(
+                n, l, j, f, mf, n_prime, l_prime, j_prime, f_prime, mf_prime, -1) * a0 * e
+
+            dip_elem_square = np.square(np.abs(dip_elem)) 
+            # dip_elem +=  atom.getDipoleMatrixElementHFS(n, l, j, f, mf, n_prime, l_prime, j_prime, f_prime, mf_prime, -1) * \
+            # 	atom.getDipoleMatrixElementHFS(n_prime, l_prime, j_prime, f_prime, mf_prime, n, l, j, f, mf, 1)
+
+            # dip_elem +=  atom.getDipoleMatrixElementHFS(n, l, j, f, mf, n_prime, l_prime, j_prime, f_prime, mf_prime, 1) * \
+            # 	atom.getDipoleMatrixElementHFS(n_prime, l_prime, j_prime, f_prime, mf_prime, n, l, j, f, mf, -1)
+
+            # print('Dipole matrix element (au): ', dip_elem)
+
+            # dip_elem_square = dip_elem * ((a0 * e) ** 2)
+            # print('dipole matrix elemen: ', np.sqrt(dip_elem_square))
+
+
+            light_shift_tmp = - dip_elem_square * \
+                ls.get_E_square(laser_power, w0) / (4 * h)
+            light_shift_tmp *=  (1 / (transition_frequency - laser_frequency) +
+                                1 / (transition_frequency + laser_frequency))
+
+            # In MHz
+            light_shift_tmp /= h * 1e6
+
+            print('Shift (MHz): ', light_shift_tmp)
+
+            light_shift += light_shift_tmp
+
+    return light_shift
+
 
 def build_params():
 	params = Parameters()
@@ -41,7 +103,7 @@ def model_pol(params, x, data=[]):
 
 
 data_cal_v_power = np.loadtxt('VtoP_data.dat')
-plt.plot(data_cal_v_power[:, 0], data_cal_v_power[:, 1], 'o', markerfacecolor='blue')
+plt.plot(data_cal_v_power[:, 0], data_cal_v_power[:, 1], 'o', markerfacecolor='skyblue', markeredgecolor='blue')
 
 params = build_params()
 fit_output = minimize(model_pol, params, args=(data_cal_v_power[:, 0], data_cal_v_power[:, 1]), method='leaastsq')
@@ -91,9 +153,9 @@ print(fit_report(fit_output_lightshift.params))
 best_fit_x_ls = np.linspace(0, 5, 50)
 best_fit_y_ls = model_linear(fit_output_lightshift.params, best_fit_x_ls)
 
-plt.plot(best_fit_x_ls, best_fit_y_ls - fit_output_lightshift.params['a0'].value, 'r--', label='Best fit')
-plt.plot(calibrated_trap_power, data_cal_v_ls[:, 1] - fit_output_lightshift.params['a0'].value, 'o', markerfacecolor='blue', label='Data 6P j=3/2 mf=3')
-plt.ylim((0, 25))
+# plt.plot(best_fit_x_ls, best_fit_y_ls - fit_output_lightshift.params['a0'].value, 'r--', label='Best fit')
+plt.plot(calibrated_trap_power, data_cal_v_ls[:, 1] - fit_output_lightshift.params['a0'].value, 'o', markerfacecolor='skyblue', markeredgecolor='blue', label='Data 6P j=3/2 mf=3')
+# plt.ylim((0, 25))
 plt.xlim((0, 5))
 plt.xlabel('Trap power (mW)', fontsize=fontsize)
 plt.ylabel('Light shift (MHz)', fontsize=fontsize)
@@ -105,8 +167,8 @@ Calculating now the theoretical value of light shift for the 6P transition
 '''
 # laser_power = 4.e-3
 laser_wavelength = 850e-9
-w0 = 1.1e-6
-q = -1
+w0 = 1.19e-6
+q = 1
 
 n = 5
 l = 0
@@ -127,7 +189,7 @@ for trap_power in laser_power:
 	    # Get complete HF manifold
 	    hf_manifold = ls.states_assemble(states[0], states[1], states[2])
 	    # Calculate shift fue to hf_manifold
-	    ls_ground += ls.light_shift_calc(state_to_calculate_shift,
+	    ls_ground += light_shift_calc(state_to_calculate_shift,
 	                      hf_manifold, q, trap_power * 1e-3, w0, laser_wavelength)
 
 	# print('Light on ground state: ', ls_ground)
@@ -144,8 +206,10 @@ mf = 3
 state_to_calculate_shift = np.array([n, l, j, f, mf])
 
 # Which manifold to consider? n, l, j
-coupled_states = np.array([[6, 0, .5], [7, 0, .5], [8, 0, .5], [5, 2, 1.5]])
+
+coupled_states = np.array([[6, 0, .5], [7, 0, .5], [8, 0, .5], [5, 2, 1.5], [5, 2, 2.5]])
 ls_excited_vector = np.array([])
+
 
 for trap_power in laser_power:
 	# Now loop over them and calculate light shift on state to calculate for each of these states to consider
@@ -154,7 +218,7 @@ for trap_power in laser_power:
 	    # Get complete HF manifold
 	    hf_manifold = ls.states_assemble(states[0], states[1], states[2])
 	    # Calculate shift fue to hf_manifold
-	    ls_excited += ls.light_shift_calc(state_to_calculate_shift,
+	    ls_excited += light_shift_calc(state_to_calculate_shift,
 	                      hf_manifold, q, trap_power * 1e-3, w0, laser_wavelength)
 	    print('Light shift due to state (n,l,j): ', states)
 	    print(ls.light_shift_calc(state_to_calculate_shift,
@@ -168,6 +232,8 @@ ls_transition = ls_excited_vector - ls_ground_vector
 print('ls on transition', ls_transition)
 
 plt.plot(laser_power, ls_transition, '--', color='black', label='Theoretical value')
+plt.plot(laser_power, ls_ground_vector, '--', label='Ground state')
+plt.plot(laser_power, ls_excited_vector, '--', label='Excited state')
 plt.legend()
 plt.show()
 

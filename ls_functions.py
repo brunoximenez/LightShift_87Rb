@@ -341,6 +341,7 @@ def get_ls_transition5S_5P32(atom, f_ground, mf_ground, f_excited, mf_excited, q
     detuning_s_state = s_states(atom, f_ground, mf_ground, q, P, w0)
     detuning_p_state = p_3_2_states(atom, f_excited, mf_excited, q, P, w0)
 
+
     shift = detuning_p_state - detuning_s_state
 
     return shift

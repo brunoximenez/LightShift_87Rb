@@ -29,42 +29,42 @@ def light_shift_calc(state_to_calculate_shift, cooupled_states, q, laser_power, 
     f = float(state_to_calculate_shift[[3]])
     mf = float(state_to_calculate_shift[[4]])
 
+    print('\nCalculating light shift on state: ', n, l, j, f, mf)
     q = int(q)
 
     for n_prime, l_prime, j_prime, f_prime, mf_prime in cooupled_states:
         n_prime = int(n_prime)
         l_prime = int(l_prime)
-        transition_frequency = atom.getTransitionFrequency(
-            n, l, j, n_prime, l_prime, j_prime, s=0.5, s2=None)
-        # print('transition wavelength (nm):', c * 1e9 / transition_frequency)
-        # print('transition frequecy (THz):' , transition_frequency * 1e-12)
 
-
-        # print('detuning (THz): ', (laser_frequency - np.abs(transition_frequency)) * 1e-12)
-        # print('detuning 780-850: ', c * 1e-12 * (1 / (850  * 1e-9) - 1 / (780 * 1e-9)))
 
         if mf_prime == mf + q and abs(f_prime - f) < 2:
-            # print('f_prime', f_prime)
-            # print('mf_prime', mf_prime)
+            transition_frequency = atom.getTransitionFrequency(
+                n, l, j, n_prime, l_prime, j_prime, s=0.5, s2=None)
+            
+            print('\nCoupled state: ', n_prime, l_prime, j_prime, f_prime, mf_prime)
+            print('Wavelength of the transition (nm): ', c * 1e9 / transition_frequency)
+            print('Detuning (THz): ', (np.abs(transition_frequency) - laser_frequency) * 1e-12)
+
             dip_elem = atom.getDipoleMatrixElementHFS(
                 n, l, j, f, mf, n_prime, l_prime, j_prime, f_prime, mf_prime, q)
-            # print(dip_elem)
+
+            print('Dipole matrix element (au): ', dip_elem)
+
             dip_elem_square = (dip_elem * a0 * e) ** 2
             # print('dipole matrix elemen: ', np.sqrt(dip_elem_square))
 
-        else:
-            dip_elem_square = 0
 
-        # if 
-        light_shift_tmp = - dip_elem_square * \
-            get_E_square(laser_power, w0) / (4 * h)
-        light_shift_tmp *=  (1 / (transition_frequency - laser_frequency) +
-                            1 / (transition_frequency + laser_frequency))
+            light_shift_tmp = - dip_elem_square * \
+                get_E_square(laser_power, w0) / (4 * h)
+            light_shift_tmp *=  (1 / (transition_frequency - laser_frequency) +
+                                1 / (transition_frequency + laser_frequency))
 
-        # In MHz
-        light_shift_tmp /= h * 1e6
+            # In MHz
+            light_shift_tmp /= h * 1e6
 
-        light_shift += light_shift_tmp
+            print('Shift (MHz): ', light_shift_tmp)
+
+            light_shift += light_shift_tmp
 
     return light_shift
 
@@ -96,18 +96,18 @@ def main():
 
     laser_power = 4.e-3
     laser_wavelength = 850e-9
-    w0 = 1.1e-6
-    q = 1
+    w0 = 1.e-6
+    q = -1
 
-    n = 5
-    l = 0
-    j = .5
-    f = 2
-    mf = 2
+    n = 6
+    l = 1
+    j = 1.5
+    f = 3
+    mf = 3
     state_to_calculate_shift = np.array([n, l, j, f, mf])
 
     # Which manifold to consider? n, l, j
-    coupled_states = np.array([[5, 1, .5], [5, 1, 1.5]])
+    coupled_states = np.array([[5, 0, .5], [6, 0, .5], [7, 0, .5], [8, 0, .5], [5, 2, 1.5], [6, 2, 1.5]])
     
     # Now loop over them and calculate light shift on state to calculate for each of these states to consider
     ls = 0 
@@ -118,7 +118,7 @@ def main():
         ls += light_shift_calc(state_to_calculate_shift,
                           hf_manifold, q, laser_power, w0, laser_wavelength)
     
-    print('Light on specified transition: ', ls)
+    print('Light shift on specified transition (MHz): ', ls)
 
 
 if __name__ == '__main__':
